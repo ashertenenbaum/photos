@@ -341,6 +341,10 @@
 
 .tileSelected .tileImg { opacity: 0.5; }
 
+.tileDragging { opacity: 0.4; cursor: grabbing; }
+
+.tileDropTarget { outline: 2.5px solid var(--ink); outline-offset: -2px; }
+
 .tileOverlay {
   position: absolute;
   inset: 0;

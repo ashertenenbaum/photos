@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { isAuthenticated } from '@/lib/auth';
-import { listPosts, createPost, addPhotoToPost } from '@/lib/photos';
+import { listPosts, createPost, addPhotoToPost, reorderPostPhotos } from '@/lib/photos';
 
 export const runtime = 'nodejs';
 
@@ -42,6 +42,18 @@ export async function POST(req: NextRequest) {
         size: typeof body.size === 'number' ? body.size : 0,
         uploadedAt: typeof body.uploadedAt === 'string' ? body.uploadedAt : new Date().toISOString(),
       });
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : 'Failed' }, { status: 500 });
+    }
+  }
+
+  if (body.action === 'reorder') {
+    if (typeof body.postId !== 'string' || !Array.isArray(body.photoKeys)) {
+      return NextResponse.json({ ok: false, error: 'postId and photoKeys required' }, { status: 400 });
+    }
+    try {
+      await reorderPostPhotos(body.postId, body.photoKeys as string[]);
       return NextResponse.json({ ok: true });
     } catch (err) {
       return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : 'Failed' }, { status: 500 });

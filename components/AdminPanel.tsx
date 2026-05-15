@@ -99,6 +99,8 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
   const [selected, setSelected] = useState<Map<string, Set<string>>>(new Map());
   const [deleting, setDeleting] = useState(false);
   const [dragOverPostId, setDragOverPostId] = useState<string | null>(null);
+  const [reorderDrag, setReorderDrag] = useState<{ postId: string; key: string } | null>(null);
+  const [reorderOver, setReorderOver] = useState<string | null>(null);
   const [savingPostId, setSavingPostId] = useState<string | null>(null);
   const [saveProgress, setSaveProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -312,6 +314,51 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
     }
   }
 
+  function startReorder(e: React.DragEvent, postId: string, key: string) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/photo-key', key);
+    setReorderDrag({ postId, key });
+  }
+
+  function reorderOverTile(e: React.DragEvent, key: string) {
+    if (!reorderDrag) return;
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setReorderOver(key);
+  }
+
+  function dropOnTile(e: React.DragEvent, postId: string, toKey: string) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!reorderDrag || reorderDrag.postId !== postId || reorderDrag.key === toKey) {
+      setReorderDrag(null);
+      setReorderOver(null);
+      return;
+    }
+    const fromKey = reorderDrag.key;
+    let reorderedKeys: string[] = [];
+    setPosts((prev) =>
+      prev.map((p) => {
+        if (p.id !== postId) return p;
+        const photos = [...p.photos];
+        const fromIdx = photos.findIndex((ph) => ph.key === fromKey);
+        const toIdx = photos.findIndex((ph) => ph.key === toKey);
+        const [moved] = photos.splice(fromIdx, 1);
+        photos.splice(toIdx, 0, moved);
+        reorderedKeys = photos.map((ph) => ph.key);
+        return { ...p, photos };
+      })
+    );
+    setReorderDrag(null);
+    setReorderOver(null);
+    fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reorder', postId, photoKeys: reorderedKeys }),
+    });
+  }
+
   function onDragOver(e: React.DragEvent, postId: string) {
     e.preventDefault();
     setDragOverPostId(postId);
@@ -511,18 +558,24 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                 ) : (
                   <div
                     className={`${styles.grid} ${dragOverPostId === post.id ? styles.gridDragOver : ''}`}
-                    onDragOver={(e) => onDragOver(e, post.id)}
+                    onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) onDragOver(e, post.id); }}
                     onDragLeave={onDragLeave}
-                    onDrop={(e) => onDrop(e, post.id)}
+                    onDrop={(e) => { if (e.dataTransfer.files.length > 0) onDrop(e, post.id); }}
                   >
                     {post.photos.map((photo) => {
                       const isSelected = postSet.has(photo.key);
                       return (
                         <button
                           key={photo.key}
-                          className={`${styles.tile} ${isSelected ? styles.tileSelected : ''}`}
+                          draggable
+                          className={`${styles.tile} ${isSelected ? styles.tileSelected : ''} ${reorderOver === photo.key && reorderDrag?.postId === post.id ? styles.tileDropTarget : ''} ${reorderDrag?.key === photo.key ? styles.tileDragging : ''}`}
                           onClick={() => toggleSelect(post.id, photo.key)}
                           aria-pressed={isSelected}
+                          onDragStart={(e) => startReorder(e, post.id, photo.key)}
+                          onDragOver={(e) => reorderOverTile(e, photo.key)}
+                          onDragLeave={() => setReorderOver(null)}
+                          onDrop={(e) => dropOnTile(e, post.id, photo.key)}
+                          onDragEnd={() => { setReorderDrag(null); setReorderOver(null); }}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={photo.url} alt="" loading="lazy" className={styles.tileImg} />

@@ -189,6 +189,15 @@ export async function addPhotoToPost(postId: string, photo: PostPhoto): Promise<
   await savePostsMetadata(posts);
 }
 
+export async function reorderPostPhotos(postId: string, orderedKeys: string[]): Promise<void> {
+  const posts = await getPostsMetadata();
+  const post = posts.find((p) => p.id === postId);
+  if (!post) return;
+  const keyOrder = new Map(orderedKeys.map((k, i) => [k, i]));
+  post.photos.sort((a, b) => (keyOrder.get(a.key) ?? 0) - (keyOrder.get(b.key) ?? 0));
+  await savePostsMetadata(posts);
+}
+
 export async function removePhotosFromPost(postId: string, keys: string[]): Promise<void> {
   const posts = await getPostsMetadata();
   const post = posts.find((p) => p.id === postId);
