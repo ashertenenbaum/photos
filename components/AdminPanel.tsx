@@ -402,23 +402,6 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
     });
   }
 
-  function onDragOver(e: React.DragEvent, postId: string) {
-    e.preventDefault();
-    setDragOverPostId(postId);
-  }
-
-  function onDragLeave(e: React.DragEvent) {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setDragOverPostId(null);
-    }
-  }
-
-  function onDrop(e: React.DragEvent, postId: string) {
-    e.preventDefault();
-    setDragOverPostId(null);
-    if (e.dataTransfer.files.length > 0) handleFiles(postId, e.dataTransfer.files);
-  }
-
   async function logout() {
     await fetch('/api/auth', {
       method: 'POST',
@@ -535,9 +518,29 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
               <div
                 key={post.id}
                 className={`${styles.post} ${isPostDragOver ? styles.postDragOver : ''} ${draggingPostId === post.id ? styles.postDragging : ''}`}
-                onDragOver={(e) => postDragOverHandler(e, post.id)}
-                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setPostDragOver(null); }}
-                onDrop={(e) => dropOnPost(e, post.id)}
+                onDragOver={(e) => {
+                  if (e.dataTransfer.types.includes('text/post-id')) {
+                    postDragOverHandler(e, post.id);
+                  } else if (e.dataTransfer.types.includes('Files')) {
+                    e.preventDefault();
+                    setDragOverPostId(post.id);
+                  }
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    setPostDragOver(null);
+                    setDragOverPostId(null);
+                  }
+                }}
+                onDrop={(e) => {
+                  if (e.dataTransfer.files.length > 0) {
+                    e.preventDefault();
+                    setDragOverPostId(null);
+                    handleFiles(post.id, e.dataTransfer.files);
+                  } else {
+                    dropOnPost(e, post.id);
+                  }
+                }}
               >
                 <div className={styles.postHeader}>
                   <div className={styles.postHeaderLeft}>
@@ -615,24 +618,24 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                   </div>
                 </div>
 
-                {!isCollapsed && (post.photos.length === 0 ? (
+                {!isCollapsed && (
+                <div className={styles.postBody}>
+                  {dragOverPostId === post.id && (
+                    <div className={styles.fileDropOverlay}>
+                      <UploadIcon />
+                      <span>Drop to add photos</span>
+                    </div>
+                  )}
+                  {post.photos.length === 0 ? (
                   <button
-                    className={`${styles.postEmpty} ${dragOverPostId === post.id ? styles.postEmptyDragOver : ''}`}
+                    className={styles.postEmpty}
                     onClick={() => openFilePicker(post.id)}
-                    onDragOver={(e) => onDragOver(e, post.id)}
-                    onDragLeave={onDragLeave}
-                    onDrop={(e) => onDrop(e, post.id)}
                   >
                     <UploadIcon />
                     <span>Add photos to this post</span>
                   </button>
                 ) : (
-                  <div
-                    className={`${styles.grid} ${dragOverPostId === post.id ? styles.gridDragOver : ''}`}
-                    onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) onDragOver(e, post.id); }}
-                    onDragLeave={onDragLeave}
-                    onDrop={(e) => { if (e.dataTransfer.files.length > 0) onDrop(e, post.id); }}
-                  >
+                  <div className={styles.grid}>
                     {post.photos.map((photo) => {
                       const isSelected = postSet.has(photo.key);
                       return (
@@ -659,7 +662,9 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                       );
                     })}
                   </div>
-                ))}
+                )}
+                </div>
+                )}
               </div>
             );
           })}
