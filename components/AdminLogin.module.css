@@ -1,0 +1,69 @@
+.main {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 36px 32px;
+  border-radius: var(--radius-md);
+  animation: fadeUp 0.4s ease both;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.lockIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.title {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.error {
+  font-size: 13px;
+  color: var(--danger);
+  text-align: center;
+  margin: -2px 0;
+}
+
+.back {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--ink-faint);
+  transition: color 0.18s ease;
+}
+
+.back:hover {
+  color: var(--ink-soft);
+}

@@ -1,0 +1,370 @@
+.main {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 40px);
+  padding-bottom: 96px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+  animation: fadeUp 0.4s ease both;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: clamp(28px, 4vw, 40px);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── New post form ── */
+
+.newPostCard {
+  margin-bottom: 24px;
+  padding: 20px 24px;
+  animation: fadeUp 0.25s ease both;
+}
+
+.newPostLabel {
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.newPostRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.newPostInput {
+  flex: 1;
+  min-width: 180px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.newPostInput:focus {
+  border-color: var(--ink);
+}
+
+.newPostInput::placeholder {
+  color: var(--ink-faint);
+}
+
+/* ── Upload tray ── */
+
+.tray {
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  animation: fadeUp 0.3s ease;
+}
+
+.trayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.trayTitle {
+  font-size: 13px;
+  color: var(--ink-mid);
+  font-weight: 500;
+}
+
+.trayCount {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.trayList {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.trayItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.trayItemName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--ink-mid);
+  flex: 1;
+  min-width: 0;
+}
+
+.trayItemStatus {
+  font-size: 12px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.status_pending { color: var(--ink-faint); }
+.status_uploading { color: var(--ink-mid); }
+.status_done { color: #2d8a47; }
+.status_error { color: var(--danger); }
+
+/* ── Posts list ── */
+
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.post {
+  animation: fadeUp 0.4s ease both;
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.postDate {
+  font-size: clamp(20px, 3vw, 28px);
+  color: var(--ink);
+}
+
+.postActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selectedCount {
+  font-size: 13px;
+  color: var(--ink-mid);
+}
+
+/* ── 3-dot menu ── */
+
+.menuWrap {
+  position: relative;
+}
+
+.menuBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink-mid);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.menuBtn:hover,
+.menuBtnActive {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--ink-mid);
+}
+
+.menuDropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 148px;
+  background: var(--bg);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  z-index: 50;
+  overflow: hidden;
+  animation: dropIn 0.15s ease both;
+}
+
+@keyframes dropIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--surface);
+}
+
+.menuItem:disabled {
+  color: var(--ink-faint);
+  cursor: default;
+}
+
+/* ── Empty post state ── */
+
+.postEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 36px 20px;
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink-faint);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.postEmpty:hover {
+  border-color: var(--ink-mid);
+  color: var(--ink-mid);
+  background: var(--bg);
+}
+
+/* ── Photo grid ── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+}
+
+@media (max-width: 420px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  background: #ececec;
+  transition: transform 0.2s ease;
+}
+
+.tile:hover {
+  transform: translateY(-1px);
+}
+
+.tile:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.tileImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s ease;
+}
+
+.tileSelected .tileImg { opacity: 0.5; }
+
+.tileOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  transition: box-shadow 0.2s ease;
+}
+
+.tileSelected .tileOverlay { box-shadow: inset 0 0 0 3px var(--ink); }
+
+.check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--line-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--surface);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.checkOn {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+/* ── Empty state (no posts) ── */
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
