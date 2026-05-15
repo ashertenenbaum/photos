@@ -158,6 +158,20 @@
   animation: fadeUp 0.4s ease both;
 }
 
+.post {
+  border-radius: var(--radius-md);
+  transition: opacity 0.2s ease;
+}
+
+.postDragging {
+  opacity: 0.4;
+}
+
+.postDragOver {
+  outline: 2px dashed var(--ink-mid);
+  outline-offset: 8px;
+}
+
 .postHeader {
   display: flex;
   align-items: center;
@@ -167,6 +181,56 @@
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
+}
+
+.postHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  color: var(--ink-faint);
+  cursor: grab;
+  flex-shrink: 0;
+  border-radius: 4px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.dragHandle:hover {
+  color: var(--ink-mid);
+  background: var(--surface);
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--ink-mid);
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.collapseBtn:hover {
+  color: var(--ink);
+  background: var(--surface);
 }
 
 .postDate {

@@ -101,6 +101,9 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
   const [dragOverPostId, setDragOverPostId] = useState<string | null>(null);
   const [reorderDrag, setReorderDrag] = useState<{ postId: string; key: string } | null>(null);
   const [reorderOver, setReorderOver] = useState<string | null>(null);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [draggingPostId, setDraggingPostId] = useState<string | null>(null);
+  const [postDragOver, setPostDragOver] = useState<string | null>(null);
   const [savingPostId, setSavingPostId] = useState<string | null>(null);
   const [saveProgress, setSaveProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -314,6 +317,51 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
     }
   }
 
+  function toggleCollapse(postId: string) {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+  }
+
+  function startPostDrag(e: React.DragEvent, postId: string) {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/post-id', postId);
+    setDraggingPostId(postId);
+  }
+
+  function postDragOverHandler(e: React.DragEvent, postId: string) {
+    if (!e.dataTransfer.types.includes('text/post-id')) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setPostDragOver(postId);
+  }
+
+  function dropOnPost(e: React.DragEvent, toPostId: string) {
+    e.preventDefault();
+    const fromPostId = draggingPostId;
+    setDraggingPostId(null);
+    setPostDragOver(null);
+    if (!fromPostId || fromPostId === toPostId) return;
+    let orderedIds: string[] = [];
+    setPosts((prev) => {
+      const next = [...prev];
+      const fromIdx = next.findIndex((p) => p.id === fromPostId);
+      const toIdx = next.findIndex((p) => p.id === toPostId);
+      const [moved] = next.splice(fromIdx, 1);
+      next.splice(toIdx, 0, moved);
+      orderedIds = next.map((p) => p.id);
+      return next;
+    });
+    fetch('/api/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reorderPosts', postIds: orderedIds }),
+    });
+  }
+
   function startReorder(e: React.DragEvent, postId: string, key: string) {
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/photo-key', key);
@@ -485,10 +533,38 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
             const allSelected = post.photos.length > 0 && postSet.size === post.photos.length;
             const isSaving = savingPostId === post.id;
 
+            const isCollapsed = collapsed.has(post.id);
+            const isPostDragOver = postDragOver === post.id && draggingPostId !== post.id;
+
             return (
-              <div key={post.id} className={styles.post}>
+              <div
+                key={post.id}
+                className={`${styles.post} ${isPostDragOver ? styles.postDragOver : ''} ${draggingPostId === post.id ? styles.postDragging : ''}`}
+                onDragOver={(e) => postDragOverHandler(e, post.id)}
+                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setPostDragOver(null); }}
+                onDrop={(e) => dropOnPost(e, post.id)}
+              >
                 <div className={styles.postHeader}>
-                  <h2 className={`display ${styles.postDate}`}>{post.date}</h2>
+                  <div className={styles.postHeaderLeft}>
+                    <div
+                      className={styles.dragHandle}
+                      draggable
+                      onDragStart={(e) => startPostDrag(e, post.id)}
+                      onDragEnd={() => { setDraggingPostId(null); setPostDragOver(null); }}
+                      title="Drag to reorder"
+                    >
+                      <GripIcon />
+                    </div>
+                    <button
+                      className={styles.collapseBtn}
+                      onClick={() => toggleCollapse(post.id)}
+                      aria-expanded={!isCollapsed}
+                      aria-label={isCollapsed ? 'Expand post' : 'Collapse post'}
+                    >
+                      <ChevronIcon collapsed={isCollapsed} />
+                    </button>
+                    <h2 className={`display ${styles.postDate}`}>{post.date}</h2>
+                  </div>
                   <div className={styles.postActions}>
                     {postSet.size > 0 && (
                       <>
@@ -544,7 +620,7 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                   </div>
                 </div>
 
-                {post.photos.length === 0 ? (
+                {!isCollapsed && (post.photos.length === 0 ? (
                   <button
                     className={`${styles.postEmpty} ${dragOverPostId === post.id ? styles.postEmptyDragOver : ''}`}
                     onClick={() => openFilePicker(post.id)}
@@ -588,13 +664,36 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                       );
                     })}
                   </div>
-                )}
+                ))}
               </div>
             );
           })}
         </div>
       )}
     </main>
+  );
+}
+
+function GripIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
+    </svg>
+  );
+}
+
+function ChevronIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      width="16" height="16" viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+      style={{ transform: collapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }}
+      aria-hidden
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
   );
 }
 

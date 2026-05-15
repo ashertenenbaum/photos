@@ -189,6 +189,13 @@ export async function addPhotoToPost(postId: string, photo: PostPhoto): Promise<
   await savePostsMetadata(posts);
 }
 
+export async function reorderPosts(orderedIds: string[]): Promise<void> {
+  const posts = await getPostsMetadata();
+  const idOrder = new Map(orderedIds.map((id, i) => [id, i]));
+  posts.sort((a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0));
+  await savePostsMetadata(posts);
+}
+
 export async function reorderPostPhotos(postId: string, orderedKeys: string[]): Promise<void> {
   const posts = await getPostsMetadata();
   const post = posts.find((p) => p.id === postId);
