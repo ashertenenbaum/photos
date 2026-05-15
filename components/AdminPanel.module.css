@@ -281,6 +281,18 @@
   background: var(--bg);
 }
 
+.postEmptyDragOver {
+  border-color: var(--ink);
+  color: var(--ink);
+  background: var(--bg);
+}
+
+.gridDragOver {
+  outline: 2px dashed var(--ink-mid);
+  outline-offset: 6px;
+  border-radius: var(--radius-sm);
+}
+
 /* ── Photo grid ── */
 
 .grid {

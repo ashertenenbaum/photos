@@ -98,6 +98,7 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
   const [tray, setTray] = useState<UploadTray | null>(null);
   const [selected, setSelected] = useState<Map<string, Set<string>>>(new Map());
   const [deleting, setDeleting] = useState(false);
+  const [dragOverPostId, setDragOverPostId] = useState<string | null>(null);
   const [savingPostId, setSavingPostId] = useState<string | null>(null);
   const [saveProgress, setSaveProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -311,6 +312,23 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
     }
   }
 
+  function onDragOver(e: React.DragEvent, postId: string) {
+    e.preventDefault();
+    setDragOverPostId(postId);
+  }
+
+  function onDragLeave(e: React.DragEvent) {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverPostId(null);
+    }
+  }
+
+  function onDrop(e: React.DragEvent, postId: string) {
+    e.preventDefault();
+    setDragOverPostId(null);
+    if (e.dataTransfer.files.length > 0) handleFiles(postId, e.dataTransfer.files);
+  }
+
   async function logout() {
     await fetch('/api/auth', {
       method: 'POST',
@@ -480,12 +498,23 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
                 </div>
 
                 {post.photos.length === 0 ? (
-                  <button className={styles.postEmpty} onClick={() => openFilePicker(post.id)}>
+                  <button
+                    className={`${styles.postEmpty} ${dragOverPostId === post.id ? styles.postEmptyDragOver : ''}`}
+                    onClick={() => openFilePicker(post.id)}
+                    onDragOver={(e) => onDragOver(e, post.id)}
+                    onDragLeave={onDragLeave}
+                    onDrop={(e) => onDrop(e, post.id)}
+                  >
                     <UploadIcon />
                     <span>Add photos to this post</span>
                   </button>
                 ) : (
-                  <div className={styles.grid}>
+                  <div
+                    className={`${styles.grid} ${dragOverPostId === post.id ? styles.gridDragOver : ''}`}
+                    onDragOver={(e) => onDragOver(e, post.id)}
+                    onDragLeave={onDragLeave}
+                    onDrop={(e) => onDrop(e, post.id)}
+                  >
                     {post.photos.map((photo) => {
                       const isSelected = postSet.has(photo.key);
                       return (
