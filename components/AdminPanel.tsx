@@ -345,16 +345,14 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
     setDraggingPostId(null);
     setPostDragOver(null);
     if (!fromPostId || fromPostId === toPostId) return;
-    let orderedIds: string[] = [];
-    setPosts((prev) => {
-      const next = [...prev];
-      const fromIdx = next.findIndex((p) => p.id === fromPostId);
-      const toIdx = next.findIndex((p) => p.id === toPostId);
-      const [moved] = next.splice(fromIdx, 1);
-      next.splice(toIdx, 0, moved);
-      orderedIds = next.map((p) => p.id);
-      return next;
-    });
+    const next = [...posts];
+    const fromIdx = next.findIndex((p) => p.id === fromPostId);
+    const toIdx = next.findIndex((p) => p.id === toPostId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = next.splice(fromIdx, 1);
+    next.splice(toIdx, 0, moved);
+    const orderedIds = next.map((p) => p.id);
+    setPosts(next);
     fetch('/api/posts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -385,19 +383,16 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
       return;
     }
     const fromKey = reorderDrag.key;
-    let reorderedKeys: string[] = [];
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id !== postId) return p;
-        const photos = [...p.photos];
-        const fromIdx = photos.findIndex((ph) => ph.key === fromKey);
-        const toIdx = photos.findIndex((ph) => ph.key === toKey);
-        const [moved] = photos.splice(fromIdx, 1);
-        photos.splice(toIdx, 0, moved);
-        reorderedKeys = photos.map((ph) => ph.key);
-        return { ...p, photos };
-      })
-    );
+    const post = posts.find((p) => p.id === postId);
+    if (!post) { setReorderDrag(null); setReorderOver(null); return; }
+    const photos = [...post.photos];
+    const fromIdx = photos.findIndex((ph) => ph.key === fromKey);
+    const toIdx = photos.findIndex((ph) => ph.key === toKey);
+    if (fromIdx === -1 || toIdx === -1) { setReorderDrag(null); setReorderOver(null); return; }
+    const [moved] = photos.splice(fromIdx, 1);
+    photos.splice(toIdx, 0, moved);
+    const reorderedKeys = photos.map((ph) => ph.key);
+    setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, photos } : p));
     setReorderDrag(null);
     setReorderOver(null);
     fetch('/api/posts', {
