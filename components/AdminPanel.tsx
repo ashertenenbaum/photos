@@ -112,7 +112,7 @@ export default function AdminPanel({ initialPosts }: { initialPosts: ResolvedPos
   useEffect(() => {
     if (!openMenuId) return;
     function handle(e: MouseEvent) {
-      const menus = document.querySelectorAll('[data-postmenu]');
+      const menus = Array.from(document.querySelectorAll('[data-postmenu]'));
       for (const m of menus) {
         if (m.contains(e.target as Node)) return;
       }
